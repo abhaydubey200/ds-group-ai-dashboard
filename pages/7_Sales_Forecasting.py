@@ -101,7 +101,7 @@ control_col1, control_col2 = st.columns([2, 8])
 
 with control_col1:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("<b>Forecast Settings</b>")
+    st.markdown("Forecast Settings")
     months = st.slider(
         "Forecast Period (Months)",
         min_value=3,
