@@ -71,7 +71,7 @@ st.markdown(
 st.markdown(
     f"""
     <div style="display:flex; align-items:center; gap:15px;">
-        <img src="https://raw.githubusercontent.com/abhaydubey200/assets/main/ds_group_logo.png"
+        <img src="https://raw.githubusercontent.com/abhaydubey200/assets/ds_logo.png"
              style="height:60px;" />
         <div>
             <h1>{APP_TITLE}</h1>
