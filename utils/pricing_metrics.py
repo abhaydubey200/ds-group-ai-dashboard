@@ -1,72 +1,29 @@
 # utils/pricing_metrics.py
-
 import pandas as pd
 
 
-def calculate_pricing_metrics(
-    df: pd.DataFrame,
-    price_col: str,
-    qty_col: str,
-    discount_col: str
-) -> pd.DataFrame:
-    """
-    Calculate pricing-related metrics safely.
+def calculate_pricing_metrics(df, price_col, qty_col, discount_col):
+    df = df.copy()
 
-    Adds:
-    - Gross_Sales
-    - Net_Sales
-    - Discount_Percent
-    """
+    df["Gross_Sales"] = df[price_col] * df[qty_col]
+    df["Discount_Amount"] = df[discount_col].fillna(0)
+    df["Net_Sales"] = df["Gross_Sales"] - df["Discount_Amount"]
 
-    # Safety checks
-    required = {price_col, qty_col, discount_col}
-    if df.empty or not required.issubset(df.columns):
-        return pd.DataFrame()
+    df["Discount_Percent"] = (
+        df["Discount_Amount"] / df["Gross_Sales"].replace(0, pd.NA)
+    ).fillna(0) * 100
 
-    temp = df.copy()
-
-    # Ensure numeric
-    for col in [price_col, qty_col, discount_col]:
-        temp[col] = pd.to_numeric(temp[col], errors="coerce").fillna(0)
-
-    temp["Gross_Sales"] = temp[price_col] * temp[qty_col]
-    temp["Net_Sales"] = temp["Gross_Sales"] - temp[discount_col]
-
-    # Avoid division by zero
-    temp["Discount_Percent"] = (
-        temp[discount_col]
-        .div(temp["Gross_Sales"].replace(0, pd.NA))
-        .mul(100)
-        .fillna(0)
-    )
-
-    return temp
+    return df
 
 
-def sku_level_pricing(
-    df: pd.DataFrame,
-    sku_col: str,
-    discount_col: str = "Discount"
-) -> pd.DataFrame:
-    """
-    Aggregate pricing metrics at SKU level.
-    """
-
-    required = {sku_col, "Gross_Sales", "Net_Sales", "Discount_Percent"}
-    if df.empty or not required.issubset(df.columns):
-        return pd.DataFrame()
-
-    if discount_col not in df.columns:
-        df[discount_col] = 0
-
-    sku_pricing = (
-        df.groupby(sku_col, as_index=False)
+def sku_level_pricing(df, sku_col):
+    return (
+        df.groupby(sku_col)
         .agg(
             Gross_Sales=("Gross_Sales", "sum"),
             Net_Sales=("Net_Sales", "sum"),
-            Discount_Amount=(discount_col, "sum"),
+            Discount_Amount=("Discount_Amount", "sum"),
             Avg_Discount_Percent=("Discount_Percent", "mean"),
         )
+        .reset_index()
     )
-
-    return sku_pricing
